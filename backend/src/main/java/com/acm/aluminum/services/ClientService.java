@@ -2,11 +2,12 @@ package com.acm.aluminum.services;
 
 import java.util.Optional;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,26 +47,19 @@ public class ClientService {
 		return new ClientDTO(entity);
 	}
 
-	private void copyDtoToEntity(ClientDTO dto, Client entity) {
-		entity.setName(dto.getName());
-		entity.setCpf(dto.getCpf());
-		entity.setIncome(dto.getIncome());
-		entity.setBirth(dto.getBirth());
-		entity.setChildern(dto.getChildern());
-	}
-
 	@Transactional
 	public ClientDTO update(Long id, ClientDTO dto) {
 		try {
-
 			@SuppressWarnings("deprecation")
 			Client entity = repo.getOne(id);
-			entity.setName(dto.getName());
+			copyDtoToEntity(dto, entity);
 			entity = repo.save(entity);
 			return new ClientDTO(entity);
-		} catch (ResourceNotFoundException e) {
-			throw new ResourceNotFoundException("id não encontrado " + id);
-		} catch (DataIntegrityViolationException e) {
+		} 
+		catch (EntityNotFoundException e) {
+			throw new ResourceNotFoundException("Id não encontrado " + id);
+		} 
+		catch (DataIntegrityViolationException e) {
 			throw new DatabaseException("Violação de integridade");
 		}
 	}
@@ -78,5 +72,13 @@ public class ClientService {
 		} catch (DataIntegrityViolationException e) {
 			throw new DatabaseException("Violação de integridade");
 		}
+	}
+	
+	private void copyDtoToEntity(ClientDTO dto, Client entity) {
+		entity.setName(dto.getName());
+		entity.setCpf(dto.getCpf());
+		entity.setIncome(dto.getIncome());
+		entity.setBirth(dto.getBirth());
+		entity.setChildern(dto.getChildern());
 	}
 }
